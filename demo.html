@@ -62,6 +62,25 @@
 </main>
 <script>
 const API = location.origin.includes('file') ? 'http://localhost:8000' : location.origin;
+let SIMULATE = false;
+
+// ---- Simulated demo mode: smart canned answers when no backend is reachable ----
+const SIM_RESPONSES = [
+  { k: ['what is algorithm.ai', 'what is algorithm ai', 'about'], t: "algorithm.AI is Paris Pehlivanovic's AI chat platform — a multi-model backend that routes between his own fine-tuned 7B model and Claude, with agent memory, browser automation, skills, and diagram tools built in. This demo is running in simulated mode, so you're seeing canned responses. The full backend deploys separately." },
+  { k: ['model', 'models', 'which model'], t: "algorithm.AI routes between two models: a local fine-tuned 7B model (fast, private, runs on your machine) and Claude via API (most capable). The router picks based on the task. In this simulated demo, model selection is visual only." },
+  { k: ['memory'], t: "The memory module is a 3-in-1 system: episodic memory (remembers past conversations), learning (improves from feedback), and session memory (tracks the current chat). It's inspired by mem0, hindsight, and agent-memory — adapted fresh for this platform." },
+  { k: ['browser'], t: "The browser module uses Playwright for web automation — the agent can visit pages, fill forms, and extract data. It degrades gracefully if Playwright isn't installed." },
+  { k: ['skill'], t: "algorithm.AI ships with 9 built-in skills: 5 scientific (paper search, data analysis, experiment design, literature review, citation) and 4 cybersecurity (attack mapping, NIST CSF, code review, threat modeling)." },
+  { k: ['diagram'], t: "The diagrams module generates self-contained SVG diagrams — architecture charts, flow diagrams, timelines — rendered right in the chat with no external dependencies." },
+  { k: ['price', 'pricing', 'cost', 'plan'], t: "algorithm.AI has two plans: Starter at $29/month and Pro at $99/month. Check the Pricing section on the main site for details." },
+  { k: ['who made', 'who built', 'creator', 'owner', 'paris'], t: "algorithm.AI was built by Paris Pehlivanovic — © 2026, all rights reserved." },
+  { k: ['hello', 'hi', 'hey'], t: "Hey! I'm the algorithm.AI demo running in simulated mode. Ask me about the platform — what it is, the models, memory, skills, or pricing." },
+];
+function simReply(q) {
+  const l = q.toLowerCase();
+  for (const r of SIM_RESPONSES) if (r.k.some(k => l.includes(k))) return r.t;
+  return "This is the algorithm.AI simulated demo — no backend is connected right now, so I can only answer questions about the platform itself. Try asking: what is algorithm.AI, what models does it use, tell me about memory, skills, or pricing.";
+}
 const chat = document.getElementById('chat'), input = document.getElementById('input'),
       sendBtn = document.getElementById('send'), modelSel = document.getElementById('model'),
       convsEl = document.getElementById('convs');
@@ -78,7 +97,16 @@ async function loadModels() {
       if (m.default) o.selected = true;
       modelSel.appendChild(o);
     });
-  } catch (e) { /* backend offline */ }
+  } catch (e) {
+    // backend offline — simulated demo mode
+    SIMULATE = true;
+    ['local', 'anthropic'].forEach((id, i) => {
+      const o = document.createElement('option');
+      o.value = id; o.textContent = id === 'local' ? 'algorithm.AI Local (demo)' : 'Claude (demo)';
+      if (i === 0) o.selected = true;
+      modelSel.appendChild(o);
+    });
+  }
 }
 function renderConvs() {
   convsEl.innerHTML = '';
@@ -119,7 +147,13 @@ async function send() {
   history.push({ role: 'user', content: text });
   addMsg('user', text);
   sendBtn.disabled = true;
-  try {
+  if (SIMULATE) {
+    // simulated demo — no backend, answer locally
+    await new Promise(r => setTimeout(r, 600 + Math.random() * 600));
+    const reply = simReply(text);
+    history.push({ role: 'assistant', content: reply });
+    addMsg('assistant', reply, 'simulated demo');
+  } else try {
     const r = await fetch(API + '/api/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: history, model: modelSel.value || undefined })
