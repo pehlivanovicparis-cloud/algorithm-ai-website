@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>algorithm.AI</title>
+<style>
+  :root {
+    --bg: #fafafa; --sidebar: #f0f0f0; --text: #1a1a1a; --muted: #888;
+    --bubble-user: #1a1a1a; --bubble-user-text: #fff;
+    --bubble-ai: #fff; --border: #e5e5e5; --accent: #1a1a1a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e0e0e; --sidebar: #161616; --text: #ececec; --muted: #777;
+      --bubble-user: #ececec; --bubble-user-text: #0e0e0e;
+      --bubble-ai: #161616; --border: #262626; --accent: #ececec;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; }
+  aside { width: 260px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 16px 12px; gap: 8px; }
+  aside h1 { font-size: 17px; font-weight: 700; padding: 4px 8px 12px; letter-spacing: -0.3px; }
+  #new-chat { background: var(--accent); color: var(--bg); border: none; border-radius: 10px; padding: 10px; font-size: 14px; cursor: pointer; font-weight: 600; }
+  #convs { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+  .conv { padding: 9px 10px; border-radius: 8px; font-size: 13.5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); opacity: .75; }
+  .conv:hover { background: var(--border); opacity: 1; }
+  .conv.active { background: var(--border); opacity: 1; font-weight: 600; }
+  main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #topbar { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; }
+  #model { background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
+  #chat { flex: 1; overflow-y: auto; padding: 28px 20px; display: flex; flex-direction: column; gap: 20px; max-width: 760px; width: 100%; margin: 0 auto; }
+  .msg { line-height: 1.7; font-size: 15px; white-space: pre-wrap; word-wrap: break-word; }
+  .msg.user { align-self: flex-end; background: var(--bubble-user); color: var(--bubble-user-text); padding: 10px 16px; border-radius: 18px; max-width: 80%; }
+  .msg.assistant { align-self: flex-start; max-width: 100%; }
+  .msg .meta { font-size: 11px; color: var(--muted); margin-top: 8px; }
+  #welcome { text-align: center; margin: auto; color: var(--muted); }
+  #welcome h2 { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; margin-bottom: 8px; }
+  #composer { padding: 16px 20px 20px; max-width: 780px; width: 100%; margin: 0 auto; }
+  #box { border: 1px solid var(--border); border-radius: 16px; background: var(--bubble-ai); display: flex; align-items: flex-end; gap: 8px; padding: 8px 8px 8px 16px; box-shadow: 0 2px 12px rgba(0,0,0,.06); }
+  #input { flex: 1; border: none; outline: none; background: transparent; color: var(--text); font-size: 15px; resize: none; max-height: 160px; padding: 8px 0; font-family: inherit; }
+  #send { background: var(--accent); color: var(--bg); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 16px; flex-shrink: 0; }
+  #send:disabled { opacity: .35; cursor: default; }
+  @media (max-width: 700px) { aside { display: none; } }
+</style>
+</head>
+<body>
+<aside>
+  <h1>algorithm.AI</h1>
+  <button id="new-chat">+ New chat</button>
+  <div id="convs"></div>
+</aside>
+<main>
+  <div id="topbar"><select id="model"></select></div>
+  <div id="chat"><div id="welcome"><h2>algorithm.AI</h2><p>Ask anything.</p></div></div>
+  <div id="composer">
+    <div id="box">
+      <textarea id="input" rows="1" placeholder="Message algorithm.AI…"></textarea>
+      <button id="send">↑</button>
+    </div>
+  </div>
+</main>
+<script>
+const API = location.origin.includes('file') ? 'http://localhost:8000' : location.origin;
+const chat = document.getElementById('chat'), input = document.getElementById('input'),
+      sendBtn = document.getElementById('send'), modelSel = document.getElementById('model'),
+      convsEl = document.getElementById('convs');
+let conversations = JSON.parse(localStorage.getItem('alg_convs') || '[]');
+let currentId = null, history = [];
+
+function save() { localStorage.setItem('alg_convs', JSON.stringify(conversations)); }
+async function loadModels() {
+  try {
+    const r = await fetch(API + '/api/models').then(r => r.json());
+    r.models.forEach(m => {
+      const o = document.createElement('option');
+      o.value = m.id; o.textContent = m.display_name;
+      if (m.default) o.selected = true;
+      modelSel.appendChild(o);
+    });
+  } catch (e) { /* backend offline */ }
+}
+function renderConvs() {
+  convsEl.innerHTML = '';
+  conversations.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'conv' + (c.id === currentId ? ' active' : '');
+    d.textContent = c.title;
+    d.onclick = () => loadConv(c.id);
+    convsEl.appendChild(d);
+  });
+}
+function newChat() {
+  currentId = Date.now().toString(); history = [];
+  chat.innerHTML = '<div id="welcome"><h2>algorithm.AI</h2><p>Ask anything.</p></div>';
+  renderConvs();
+}
+function loadConv(id) {
+  const c = conversations.find(x => x.id === id);
+  if (!c) return;
+  currentId = id; history = c.messages.slice();
+  chat.innerHTML = '';
+  history.forEach(m => addMsg(m.role, m.content));
+  renderConvs();
+}
+function addMsg(role, text, meta) {
+  const w = document.getElementById('welcome');
+  if (w) w.remove();
+  const d = document.createElement('div');
+  d.className = 'msg ' + role; d.textContent = text;
+  if (meta) { const s = document.createElement('div'); s.className = 'meta'; s.textContent = meta; d.appendChild(s); }
+  chat.appendChild(d);
+  chat.scrollTop = chat.scrollHeight;
+}
+async function send() {
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = ''; input.style.height = 'auto';
+  history.push({ role: 'user', content: text });
+  addMsg('user', text);
+  sendBtn.disabled = true;
+  try {
+    const r = await fetch(API + '/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history, model: modelSel.value || undefined })
+    }).then(r => r.json());
+    if (r.content) {
+      history.push({ role: 'assistant', content: r.content });
+      addMsg('assistant', r.content, r.model || '');
+    } else addMsg('assistant', 'Error: ' + (r.detail || 'unknown'));
+  } catch (e) { addMsg('assistant', 'Could not reach the server.'); }
+  // persist conversation
+  const title = history[0].content.slice(0, 40);
+  const existing = conversations.find(x => x.id === currentId);
+  if (existing) existing.messages = history.slice();
+  else { conversations.unshift({ id: currentId, title, messages: history.slice() }); }
+  save(); renderConvs();
+  sendBtn.disabled = false;
+}
+document.getElementById('new-chat').onclick = newChat;
+sendBtn.onclick = send;
+input.onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } };
+input.oninput = () => { input.style.height = 'auto'; input.style.height = input.scrollHeight + 'px'; };
+newChat(); loadModels();
+</script>
+</body>
+</html>
