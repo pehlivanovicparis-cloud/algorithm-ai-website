@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>algorithm.AI — Super AI Agent Platform</title>
+<meta name="description" content="algorithm.AI is a multi-model AI chat platform with persistent agent memory, browser automation, domain skills, and more. By Paris Pehlivanovic.">
+<style>
+  :root { --bg: #fafafa; --text: #1a1a1a; --muted: #666; --border: #e8e8e8; --accent: #1a1a1a; --card: #fff; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0e0e0e; --text: #ececec; --muted: #999; --border: #262626; --accent: #ececec; --card: #161616; }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  nav { max-width: 1100px; margin: 0 auto; padding: 20px 24px; display: flex; align-items: center; }
+  nav .logo { font-weight: 800; font-size: 19px; letter-spacing: -0.4px; }
+  nav .links { margin-left: auto; display: flex; gap: 24px; font-size: 14px; }
+  nav a { color: var(--muted); text-decoration: none; }
+  nav a:hover { color: var(--text); }
+  .hero { max-width: 1100px; margin: 0 auto; padding: 90px 24px 70px; text-align: center; }
+  .hero h1 { font-size: clamp(38px, 6vw, 64px); font-weight: 800; letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 18px; }
+  .hero p { font-size: 18px; color: var(--muted); max-width: 620px; margin: 0 auto 32px; }
+  .cta { display: inline-block; background: var(--accent); color: var(--bg); padding: 14px 32px; border-radius: 12px; font-weight: 700; font-size: 16px; text-decoration: none; }
+  .grid { max-width: 1100px; margin: 0 auto; padding: 20px 24px 80px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; }
+  .card h3 { font-size: 17px; margin-bottom: 8px; }
+  .card p { font-size: 14.5px; color: var(--muted); }
+  .models { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; text-align: center; }
+  .models h2 { font-size: 28px; letter-spacing: -0.5px; margin-bottom: 12px; }
+  .models p { color: var(--muted); margin-bottom: 28px; }
+  .model-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .model-chip { border: 1px solid var(--border); background: var(--card); border-radius: 12px; padding: 14px 24px; font-weight: 600; font-size: 15px; }
+  footer { border-top: 1px solid var(--border); padding: 28px 24px; text-align: center; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">algorithm.AI</div>
+  <div class="links"><a href="#features">Features</a><a href="#models">Models</a></div>
+</nav>
+<section class="hero">
+  <h1>One platform.<br>Every model. Total memory.</h1>
+  <p>algorithm.AI is a multi-model chat platform with persistent agent memory, real browser automation, and domain skills — built to remember, browse, and reason alongside you.</p>
+  <a class="cta" href="../frontend/index.html">Start chatting</a>
+</section>
+<section class="grid" id="features">
+  <div class="card"><h3>Multi-model routing</h3><p>Switch between your own fine-tuned Llama 3.1 8B and Anthropic's Claude in one interface. Add new models with a single config entry.</p></div>
+  <div class="card"><h3>Persistent memory</h3><p>Three-layer memory — episodic facts, distilled learnings, and session context — so the agent carries understanding across every conversation.</p></div>
+  <div class="card"><h3>Browser automation</h3><p>The agent operates a real browser: navigate, click, type, scroll, and extract content to complete workflows for you.</p></div>
+  <div class="card"><h3>Domain skills</h3><p>Scientific research skills and cybersecurity capabilities mapped to industry frameworks, ready when the task needs them.</p></div>
+  <div class="card"><h3>Context systems</h3><p>Deep context retrieval gives the agent the right information at the right time, unified across memory, knowledge, and skills.</p></div>
+  <div class="card"><h3>Clean by design</h3><p>Modular architecture, configuration over code, and separation of concerns — built to extend, not to entangle.</p></div>
+  <div class="card"><h3>Fine-tuned intelligence</h3><p>A custom LoRA adapter trained on the platform's own knowledge — 30/30 on capability evaluation, so the agent describes every tool with precision.</p></div>
+</section>
+<section class="models" id="models">
+  <h2>Your models, your choice</h2>
+  <p>Every conversation can run on the model that fits the task.</p>
+  <div class="model-row">
+    <div class="model-chip">Llama 3.1 8B <span style="color:var(--muted);font-weight:400">· local</span></div>
+    <div class="model-chip">Claude <span style="color:var(--muted);font-weight:400">· Anthropic</span></div>
+  </div>
+</section>
+<section class="models" id="pricing">
+  <h2>Pricing</h2>
+  <p>Start free. Upgrade when you're ready.</p>
+  <div class="model-row">
+    <div class="card" style="text-align:center;min-width:260px">
+      <h3>Starter</h3>
+      <p style="font-size:28px;font-weight:800;color:var(--text)">$29<span style="font-size:15px;font-weight:400;color:var(--muted)">/mo</span></p>
+      <p>1,000 messages / month</p>
+      <a class="cta" style="margin-top:16px" href="https://buy.stripe.com/aFa6oIf4L8Dv4L5f4w4wM00">Subscribe</a>
+    </div>
+    <div class="card" style="text-align:center;min-width:260px;border-width:2px">
+      <h3>Pro</h3>
+      <p style="font-size:28px;font-weight:800;color:var(--text)">$99<span style="font-size:15px;font-weight:400;color:var(--muted)">/mo</span></p>
+      <p>10,000 messages / month</p>
+      <a class="cta" style="margin-top:16px" href="https://buy.stripe.com/dRmfZicWD8DvfpJ2hK4wM01">Subscribe</a>
+    </div>
+  </div>
+</section>
+<footer>© 2026 Paris Pehlivanovic. All rights reserved.</footer>
+</body>
+</html>
